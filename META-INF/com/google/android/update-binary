@@ -1,0 +1,69 @@
+#!/sbin/sh
+set -x
+# Shell Script EDIFY Replacement: Recovery Flashable Zip
+# osm0sis @ xda-developers
+# edited by USBhost @ xda-developers
+
+OUTFD=/proc/self/fd/$2;
+ZIPFILE="$3";
+
+# ui_print "<message>" ["<message 2>" ...]
+ui_print() {
+  until [ ! "$1" ]; do
+    echo -e "ui_print $1" >> $OUTFD;
+    shift;
+  done;
+}
+
+# package_extract_file <file> <destination_file>
+package_extract_file() { unzip -o "$ZIPFILE" "$1" -p > "$2"; }
+
+# package_extract_dir <dir> <destination_dir>
+package_extract_dir() { unzip -o "$ZIPFILE" "$1/*" -d "$2"; }
+
+ui_print "";
+ui_print "------------------------------------";
+ui_print "-             USB Tool             -";
+ui_print "------------------------------------";
+ui_print "";
+
+ui_print "Extracting files";
+mkdir /tmp/WORKING;
+package_extract_file usb /tmp/WORKING/usb;
+package_extract_dir lib /tmp/WORKING/lib
+
+ui_print "System: Mounting ";
+mount /system;
+
+cp -f /tmp/WORKING/usb /system/bin/usb;
+chcon --user=u --role=object_r --type=system_file /system/bin/usb;
+chmod 755 /system/bin/usb;
+
+# ext Tools.
+cp -f /tmp/WORKING/lib/e2fsck /system/usblib/e2fsck;
+cp -f /tmp/WORKING/lib/mke2fs /system/usblib/mke2fs;
+chcon --user=u --role=object_r --type=fsck_exec /system/usblib/e2fsck;
+chcon --user=u --role=object_r --type=system_file /system/usblib/mke2fs;
+
+# F2FS Tools.
+cp -f /tmp/WORKING/lib/fsck.f2fs /system/usblib/fsck.f2fs;
+cp -f /tmp/WORKING/lib/mkfs.f2fs /system/usblib/mkfs.f2fs;
+chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.f2fs;
+chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.f2fs;
+
+# Exfat Tools.
+cp -f /tmp/WORKING/lib/fsck.exfat /system/usblib/fsck.exfat;
+cp -f /tmp/WORKING/lib/mkfs.exfat /system/usblib/mkfs.exfat;
+chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.exfat;
+chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.exfat;
+
+# Vfat Tools.
+cp -f /tmp/WORKING/lib/fsck.vfat /system/usblib/fsck.vfat;
+cp -f /tmp/WORKING/lib/mkfs.vfat /system/usblib/mkfs.vfat;
+chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.vfat;
+chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.vfat;
+
+chmod -R 755 /system/usblib;
+
+ui_print "Done! unmounting system";
+umount /system;
