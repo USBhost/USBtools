@@ -1,0 +1,180 @@
+#!/system/bin/sh
+#
+# W.I.P. script, by XDA@USBhost. made for the Nexus 9 in mind.
+# If your using f2fs i am assuming the kernel is using the latest f2fs.
+#
+
+#set -x
+
+#globle
+BB="$(find /system -name busybox | head -n 1)"; # BusyBox
+MF="USB";                 # Mount Folder
+MP="/data/media/0/${MF}"; # Mount point
+MFP="/sdcard/${MF}";      # Mount Folder point
+
+function helpd() {
+	echo "
+Usage: -m BLOCK FILE-SYSTEM // like -m sda f2fs
+Note: if FILE-SYSTEM is not specified (like -m sda )
+for mount, auto will be used insted.
+
+    -h -------------------- display this help
+    -u -------------------- umount drive
+    -m BLOCK FILE-SYSTEM -- mount drive
+    -r BLOCK FILE-SYSTEM -- repair drive
+    -f BLOCK FILE-SYSTEM -- format drive
+
+Supported file systems (to mount): 
+$(cat /proc/filesystems | grep -v nodev | grep -v fuseblk)
+
+Supported file systems (to format):
+	ext3
+	ext2
+	ext4
+	vfat
+	exfat
+	f2fs
+
+Supported file systems (to repair):
+	ext3
+	ext2
+	ext4
+	vfat
+	exfat
+	f2fs"
+}
+
+# list mount points
+function listd() {
+	for f in /dev/block/sd*; 
+	do 
+		echo "${f##*/}"; 
+	done
+}
+
+# mount
+function mountd() {
+	mkdir -p ${MFP};
+	
+	if [ "${3}" != "" ]; then
+		# vfat does not need umask=000 because it has no permission support.
+		if [ "${3}" == "ntfs" ]; then
+			${SUPERUS} ${BB} mount -t ${3} -o rw,umask=000,nls=utf8 /dev/block/${2} ${MP};
+		elif [ "${3}" == "exfat" ]; then
+			${SUPERUS} ${BB} mount -t ${3} -o rw,umask=000 /dev/block/${2} ${MP};
+		else
+			${SUPERUS} ${BB} mount -t ${3} -o rw /dev/block/${2} ${MP};
+		fi
+	else
+		${SUPERUS} ${BB} mount -t auto -o rw /dev/block/${2} ${MP};
+	fi
+	
+	echo "Mounted: ${MP}";
+	echo "Access here: ${MFP}";
+}
+
+# umount
+function umountd() {
+	${BB} umount -l ${MP};
+	echo "Unmounted: ${MP}";
+}
+
+# format
+function formatd() {
+	f2fs="/system/usblib/mkfs.f2fs";
+	ext="/system/usblib/mke2fs";
+	vfat="/system/usblib/mkfs.fat";
+	exfat="/system/usblib/mkfs.exfat";
+
+	if [ "${3}" != "" ]; then
+		umountd;
+		
+		if [ "${3}" == "f2fs" ]; then
+			${f2fs} /dev/block/${2};
+			mountd - ${2} ${3};
+			chmod -R 777 ${MP};
+		elif [ "${3}" == "ext2" ]; then
+			${ext} -t ${3} /dev/block/${2};
+			mountd - ${2} ${3};
+			chmod -R 777 ${MP};
+		elif [ "${3}" == "ext3" ]; then
+			${ext} -t ${3} /dev/block/${2};
+			mountd - ${2} ${3};
+			chmod -R 777 ${MP};
+		elif [ "${3}" == "ext4" ]; then
+			${ext} -t ${3} /dev/block/${2};
+			mountd - ${2} ${3};
+			chmod -R 777 ${MP};
+		elif [ "${3}" == "ntfs" ]; then
+			echo "not supported yet";
+		elif [ "${3}" == "vfat" ]; then
+			${vfat} /dev/block/${2};
+			mountd - ${2} ${3};
+		elif [ "${3}" == "exfat" ]; then
+			${exfat} /dev/block/${2};
+			mountd - ${2} ${3};
+		fi
+	fi
+}
+
+# repair
+function repaird() {
+	f2fs="/system/usblib/fsck.f2fs";
+	ext="/system/usblib/e2fsck";
+	vfat="/system/usblib/fsck.fat";
+	exfat="/system/usblib/fsck.exfat";
+	
+	function extcheck() {
+		if [ "${3}" == "ext2" ] ||
+			[ "${3}" == "ext3" ] ||
+			[ "${3}" == "ext4" ]; then
+			echo "dont use ${3}, use ext instead";
+			exit 1;
+		fi
+	}
+
+	if [ "${3}" != "" ]; then
+		extcheck ${@};
+		umountd;
+		
+		if [ "${3}" == "f2fs" ]; then
+			${f2fs} ${4} /dev/block/${2};
+		elif [ "${3}" == "ext" ]; then
+			${ext} ${4} /dev/block/${2};
+		elif [ "${3}" == "ntfs" ]; then
+			echo "not supported yet";
+		elif [ "${3}" == "vfat" ]; then
+			${vfat} ${4} /dev/block/${2};
+		elif [ "${3}" == "exfat" ]; then
+			${exfat} /dev/block/${2};
+		fi
+	fi
+}
+
+if [ "$(whoami)" != "root" ]; then
+	echo "...ROOT is required...";
+	exit 1;
+fi
+
+if [ "$(su -v | grep -o SUPERSU)" == "SUPERSU" ]; then
+	SUPERUS="su --mount-master -c";
+fi
+
+while getopts lum:f:r:h opt; do
+    case $opt in
+        l) listd;
+            ;;
+        u) umountd;
+            ;;
+        m) mountd ${@};
+            ;;
+        f) formatd ${@};
+            ;;
+        r) repaird ${@};
+            ;;
+        h) helpd;
+            ;;
+        *) helpd;
+            ;;
+    esac
+done
