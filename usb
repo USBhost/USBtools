@@ -81,10 +81,10 @@ function umountd() {
 
 # format
 function formatd() {
-	f2fs="/system/usblib/mkfs.f2fs";
-	ext="/system/usblib/mke2fs";
-	vfat="/system/usblib/mkfs.fat";
-	exfat="/system/usblib/mkfs.exfat";
+	f2fs="/system/etc/usblib/mkfs.f2fs";
+	ext="/system/etc/usblib/mke2fs";
+	vfat="/system/etc/usblib/mkfs.fat";
+	exfat="/system/etc/usblib/mkfs.exfat";
 
 	if [ "${3}" != "" ]; then
 		umountd;
@@ -119,10 +119,10 @@ function formatd() {
 
 # repair
 function repaird() {
-	f2fs="/system/usblib/fsck.f2fs";
-	ext="/system/usblib/e2fsck";
-	vfat="/system/usblib/fsck.fat";
-	exfat="/system/usblib/fsck.exfat";
+	f2fs="/system/etc/usblib/fsck.f2fs";
+	ext="/system/etc/usblib/e2fsck";
+	vfat="/system/etc/usblib/fsck.fat";
+	exfat="/system/etc/usblib/fsck.exfat";
 	
 	function extcheck() {
 		if [ "${3}" == "ext2" ] ||

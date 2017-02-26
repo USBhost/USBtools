@@ -30,40 +30,45 @@ ui_print "";
 ui_print "Extracting files";
 mkdir /tmp/WORKING;
 package_extract_file usb /tmp/WORKING/usb;
-package_extract_dir lib /tmp/WORKING/lib
+mkdir /tmp/WORKING/lib;
+package_extract_dir lib /tmp/WORKING/;
 
 ui_print "System: Mounting ";
 mount /system;
+
+# Make Folder
+rm -rf /system/etc/usblib;
+mkdir /system/etc/usblib;
 
 cp -f /tmp/WORKING/usb /system/bin/usb;
 chcon --user=u --role=object_r --type=system_file /system/bin/usb;
 chmod 755 /system/bin/usb;
 
 # ext Tools.
-cp -f /tmp/WORKING/lib/e2fsck /system/usblib/e2fsck;
-cp -f /tmp/WORKING/lib/mke2fs /system/usblib/mke2fs;
-chcon --user=u --role=object_r --type=fsck_exec /system/usblib/e2fsck;
-chcon --user=u --role=object_r --type=system_file /system/usblib/mke2fs;
+cp -f /tmp/WORKING/lib/e2fsck /system/etc/usblib/e2fsck;
+cp -f /tmp/WORKING/lib/mke2fs /system/etc/usblib/mke2fs;
+chcon --user=u --role=object_r --type=fsck_exec /system/etc/usblib/e2fsck;
+chcon --user=u --role=object_r --type=system_file /system/etc/usblib/mke2fs;
 
 # F2FS Tools.
-cp -f /tmp/WORKING/lib/fsck.f2fs /system/usblib/fsck.f2fs;
-cp -f /tmp/WORKING/lib/mkfs.f2fs /system/usblib/mkfs.f2fs;
-chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.f2fs;
-chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.f2fs;
+cp -f /tmp/WORKING/lib/fsck.f2fs /system/etc/usblib/fsck.f2fs;
+cp -f /tmp/WORKING/lib/mkfs.f2fs /system/etc/usblib/mkfs.f2fs;
+chcon --user=u --role=object_r --type=fsck_exec /system/etc/usblib/fsck.f2fs;
+chcon --user=u --role=object_r --type=system_file /system/etc/usblib/mkfs.f2fs;
 
 # Exfat Tools.
-cp -f /tmp/WORKING/lib/fsck.exfat /system/usblib/fsck.exfat;
-cp -f /tmp/WORKING/lib/mkfs.exfat /system/usblib/mkfs.exfat;
-chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.exfat;
-chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.exfat;
+cp -f /tmp/WORKING/lib/fsck.exfat /system/etc/usblib/fsck.exfat;
+cp -f /tmp/WORKING/lib/mkfs.exfat /system/etc/usblib/mkfs.exfat;
+chcon --user=u --role=object_r --type=fsck_exec /system/etc/usblib/fsck.exfat;
+chcon --user=u --role=object_r --type=system_file /system/etc/usblib/mkfs.exfat;
 
 # Vfat Tools.
-cp -f /tmp/WORKING/lib/fsck.vfat /system/usblib/fsck.vfat;
-cp -f /tmp/WORKING/lib/mkfs.vfat /system/usblib/mkfs.vfat;
-chcon --user=u --role=object_r --type=fsck_exec /system/usblib/fsck.vfat;
-chcon --user=u --role=object_r --type=system_file /system/usblib/mkfs.vfat;
+cp -f /tmp/WORKING/lib/fsck.vfat /system/etc/usblib/fsck.vfat;
+cp -f /tmp/WORKING/lib/mkfs.vfat /system/etc/usblib/mkfs.vfat;
+chcon --user=u --role=object_r --type=fsck_exec /system/etc/usblib/fsck.vfat;
+chcon --user=u --role=object_r --type=system_file /system/etc/usblib/mkfs.vfat;
 
-chmod -R 755 /system/usblib;
+chmod -R 755 /system/etc/usblib;
 
 ui_print "Done! unmounting system";
 umount /system;
