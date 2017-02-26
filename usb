@@ -6,6 +6,12 @@
 
 #set -x
 
+# This is to avoid running though everything just for an exit 1
+if [ "$(whoami)" != "root" ]; then
+	echo "...ROOT is required...";
+	exit 1;
+fi
+
 #globle
 BB="$(find /system -name busybox | head -n 1)"; # BusyBox
 MF="USB";                 # Mount Folder
@@ -93,15 +99,9 @@ function formatd() {
 			${f2fs} /dev/block/${2};
 			mountd - ${2} ${3};
 			chmod -R 777 ${MP};
-		elif [ "${3}" == "ext2" ]; then
-			${ext} -t ${3} /dev/block/${2};
-			mountd - ${2} ${3};
-			chmod -R 777 ${MP};
-		elif [ "${3}" == "ext3" ]; then
-			${ext} -t ${3} /dev/block/${2};
-			mountd - ${2} ${3};
-			chmod -R 777 ${MP};
-		elif [ "${3}" == "ext4" ]; then
+		elif [ "${3}" == "ext2" ] || 
+		     [ "${3}" == "ext3" ] || 
+		     [ "${3}" == "ext4" ]; then
 			${ext} -t ${3} /dev/block/${2};
 			mountd - ${2} ${3};
 			chmod -R 777 ${MP};
@@ -126,8 +126,8 @@ function repaird() {
 	
 	function extcheck() {
 		if [ "${3}" == "ext2" ] ||
-			[ "${3}" == "ext3" ] ||
-			[ "${3}" == "ext4" ]; then
+		   [ "${3}" == "ext3" ] ||
+		   [ "${3}" == "ext4" ]; then
 			echo "dont use ${3}, use ext instead";
 			exit 1;
 		fi
@@ -150,11 +150,6 @@ function repaird() {
 		fi
 	fi
 }
-
-if [ "$(whoami)" != "root" ]; then
-	echo "...ROOT is required...";
-	exit 1;
-fi
 
 if [ "$(su -v | grep -o SUPERSU)" == "SUPERSU" ]; then
 	SUPERUS="su --mount-master -c";
